@@ -1,0 +1,224 @@
+.hover-card {
+  transition: all 0.25s ease;
+  cursor: pointer;
+  border: 1px solid #eee;
+}
+
+
+.hover-yellow {
+  transition: background-color 0.2s ease;
+}
+
+.hover-yellow:hover {
+  background-color: #f5a400 !important;
+   transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.brand-card {
+  cursor: pointer;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.brand-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.brand-logo {
+  height: 40px;
+  object-fit: contain;
+  filter: grayscale(100%);
+  opacity: 0.85;
+}
+
+.brand-card:hover .brand-logo {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+/* ===== NAVBAR PROFESSIONAL STYLES ===== */
+
+.navbar-pro {
+  background-color: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  z-index: 1030;
+}
+
+/* override bootstrap nav-link */
+.navbar-pro .nav-link-pro {
+  position: relative;
+  font-weight: 500;
+  color: #212529 !important;
+  padding: 0.5rem 0.75rem !important;
+  transition: color 0.25s ease;
+}
+
+/* underline */
+.navbar-pro .nav-link-pro::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background-color: #0d6efd;
+  transition: width 0.25s ease;
+}
+
+/* hover */
+.navbar-pro .nav-link-pro:hover {
+  color: #0d6efd !important;
+}
+
+.navbar-pro .nav-link-pro:hover::after {
+  width: 80%;
+}
+
+/* active route */
+.navbar-pro .nav-link-pro.active {
+  color: #0d6efd !important;
+}
+
+.navbar-pro .nav-link-pro.active::after {
+  width: 80%;
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+ 
+  padding-top: 72px; /* navbar height */
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+.hero-section {
+  background-image: linear-gradient(
+      rgba(0, 0, 0, 0.55),
+      rgba(0, 0, 0, 0.55)
+    ),
+    url("/images/hero-bg.jpg"); /* your PNG/JPG */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.hero-section {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+    url("/images/hero-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 70vh;
+}
+
+.hero-section .card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  border: none;
+}
+.suggestion-item:hover {
+  background-color: #f1f3f5;
+  /* Navbar hover effect */
+.nav-link-custom {
+  position: relative;
+  font-weight: 500;
+  color: #212529 !important;
+  transition: color 0.2s ease;
+}
+
+/* underline animation */
+.nav-link-custom::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0%;
+  height: 2px;
+  background-color: #0d6efd; /* Bootstrap primary */
+  transition: width 0.25s ease;
+}
+
+.nav-link-custom:hover {
+  color: #0d6efd !important;
+}
+
+.nav-link-custom:hover::after {
+  width: 100%;
+}
+
+}
+
+/* Disable scrolling on login/register */
+.no-scroll {
+  overflow: hidden;
+}
+
+/* Login page layout */
+.login-wrapper {
+  min-height: calc(100vh - 72px); /* navbar height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
