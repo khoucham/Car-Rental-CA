@@ -172,5 +172,43 @@ router.get("/", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch bookings" });
   }
 });
+/* =====================================================
+   GET SINGLE BOOKING (USER – FOR RECEIPT)
+===================================================== */
+router.get("/:id", requireAuth, async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const userId = req.user.id;
+
+    const [[booking]] = await db.query(
+      `
+      SELECT 
+        b.id,
+        b.start_date,
+        b.end_date,
+        b.total,
+        b.status,
+        b.created_at,
+        c.brand,
+        c.model
+      FROM bookings b
+      JOIN cars c ON c.id = b.car_id
+      WHERE b.id = ?
+        AND b.user_id = ?
+      `,
+      [bookingId, userId]
+    );
+
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    res.json(booking);
+  } catch (err) {
+    console.error("GET SINGLE BOOKING ERROR:", err);
+    res.status(500).json({ error: "Failed to fetch booking" });
+  }
+});
+
 
 export default router;

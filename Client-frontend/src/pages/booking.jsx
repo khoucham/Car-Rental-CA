@@ -44,7 +44,7 @@ function Booking() {
 
   const [pickupLocation, setPickupLocation] = useState({
     lat: 53.4264,
-    lng: -6.2499,
+    lng: -6.2499, // Dublin Airport
   });
 
   /* =====================
@@ -52,8 +52,8 @@ function Booking() {
   ===================== */
   useEffect(() => {
     fetch(`http://localhost:5000/api/cars/${id}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setCar(data);
         setLoading(false);
       })
@@ -68,9 +68,9 @@ function Booking() {
   ===================== */
   useEffect(() => {
     fetch(`http://localhost:5000/api/bookings/car/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        const intervals = data.map(b => ({
+      .then((res) => res.json())
+      .then((data) => {
+        const intervals = data.map((b) => ({
           start: normalizeDate(b.start_date),
           end: normalizeDate(b.end_date),
         }));
@@ -78,12 +78,11 @@ function Booking() {
       });
   }, [id]);
 
-  /* =====================
-     Date blocking logic
-  ===================== */
   const isDateBooked = (date) => {
     const d = normalizeDate(date);
-    return bookedIntervals.some(i => d >= i.start && d <= i.end);
+    return bookedIntervals.some(
+      (i) => d >= i.start && d <= i.end
+    );
   };
 
   const days = useMemo(
@@ -104,7 +103,9 @@ function Booking() {
       <Container className="mt-4">
         <Alert variant="warning">
           You must login first.{" "}
-          <Alert.Link as={Link} to="/login">Login</Alert.Link>
+          <Alert.Link as={Link} to="/login">
+            Login
+          </Alert.Link>
         </Alert>
       </Container>
     );
@@ -119,7 +120,7 @@ function Booking() {
   }
 
   /* =====================
-     Submit booking
+     Submit booking → Payment
   ===================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -144,11 +145,15 @@ function Booking() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Booking failed");
 
-      navigate("/bookings");
+      if (!res.ok) {
+        throw new Error(data.error || "Booking failed");
+      }
+
+      // ✅ Redirect to payment page
+      navigate(`/payment/${data.id}`);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Something went wrong");
     }
   };
 
@@ -158,7 +163,7 @@ function Booking() {
   return (
     <Container className="my-5">
       <Row className="g-4">
-        {/* LEFT – BOOKING FORM */}
+        {/* LEFT */}
         <Col lg={7}>
           <Card className="shadow-sm h-100">
             <Card.Body>
@@ -168,27 +173,27 @@ function Booking() {
 
               <Form onSubmit={handleSubmit}>
                 <Form.Group className="mb-3">
-                <Form.Label className="mb-1"> Start Date: </Form.Label>
-
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date) => {
-                    setStartDate(date);
-                    setEndDate(null);
-                  }}
-                  minDate={new Date()}
-                  filterDate={(date) => !isDateBooked(date)}
-                  className="form-control mt-1"
-                  dateFormat="dd/MM/yy"
-                  placeholderText="DD/MM/YY"
-                />
-              </Form.Group>
+                  <Form.Label className="mb-1">
+                    Start Date (DD/MM/YY)
+                  </Form.Label>
+                  <DatePicker
+                    selected={startDate}
+                    onChange={(date) => {
+                      setStartDate(date);
+                      setEndDate(null);
+                    }}
+                    minDate={new Date()}
+                    filterDate={(date) => !isDateBooked(date)}
+                    className="form-control mt-1"
+                    dateFormat="dd/MM/yy"
+                    placeholderText="DD/MM/YY"
+                  />
+                </Form.Group>
 
                 <Form.Group className="mb-3">
                   <Form.Label className="mb-1">
-                    End Date :
+                    End Date (DD/MM/YY)
                   </Form.Label>
-
                   <DatePicker
                     selected={endDate}
                     onChange={setEndDate}
@@ -200,7 +205,6 @@ function Booking() {
                   />
                 </Form.Group>
 
-
                 <Form.Group className="mb-4">
                   <Form.Label className="mb-1">Email</Form.Label>
                   <Form.Control value={user.email} disabled />
@@ -211,14 +215,14 @@ function Booking() {
                   className="w-100"
                   disabled={days <= 0}
                 >
-                  Continue
+                  Proceed to Payment
                 </Button>
               </Form>
             </Card.Body>
           </Card>
         </Col>
 
-        {/* RIGHT – SUMMARY + MAP */}
+        {/* RIGHT */}
         <Col lg={5}>
           <Card className="shadow-sm mb-4">
             <Card.Body>
@@ -236,7 +240,9 @@ function Booking() {
 
           <Card className="shadow-sm">
             <Card.Body>
-              <h6 className="mb-3">Pick-up Location (Dublin Airport)</h6>
+              <h6 className="mb-3">
+                Pick-up Location (Dublin Airport)
+              </h6>
 
               <div
                 style={{

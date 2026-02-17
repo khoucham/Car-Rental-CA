@@ -26,10 +26,10 @@ router.post("/create-intent", requireAuth, async (req, res) => {
     }
 
     const intent = await stripe.paymentIntents.create({
-      amount: Math.round(booking.total * 100), // cents
-      currency: "eur",
-      automatic_payment_methods: { enabled: true },
-    });
+  amount: Math.round(booking.total * 100),
+  currency: "eur",
+  payment_method_types: ["card"],
+});
 
     res.json({ clientSecret: intent.client_secret });
   } catch (err) {
@@ -43,7 +43,7 @@ router.post("/confirm", requireAuth, async (req, res) => {
 
     await db.query(`
       UPDATE bookings
-      SET status = 'confirmed'
+      SET status = 'pending'
       WHERE id = ? AND user_id = ?
     `, [bookingId, req.user.id]);
 

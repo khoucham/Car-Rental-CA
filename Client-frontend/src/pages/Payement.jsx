@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -12,8 +12,6 @@ import Container from "react-bootstrap/Container";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
-
-
 
 /* ======================
    STRIPE INIT
@@ -28,7 +26,6 @@ const stripePromise = loadStripe(
 function CheckoutForm({ bookingId }) {
   const stripe = useStripe();
   const elements = useElements();
-  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -39,10 +36,12 @@ function CheckoutForm({ bookingId }) {
     setLoading(true);
     setError("");
 
+    console.log("PAYING FOR BOOKING:", bookingId); // ✅ DEBUG
+
     const result = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: "http://localhost:5173/bookings",
+        return_url: `http://127.0.0.1:5173/payment-success/${bookingId}`,
       },
     });
 
@@ -50,7 +49,7 @@ function CheckoutForm({ bookingId }) {
       setError(result.error.message);
       setLoading(false);
     }
-    // ✅ success → Stripe redirects automatically
+    // success → Stripe redirects automatically
   };
 
   return (
@@ -82,6 +81,8 @@ export default function Payment() {
   useEffect(() => {
     const createIntent = async () => {
       try {
+        console.log("CREATING INTENT FOR:", bookingId); // ✅ DEBUG
+
         const res = await fetch(
           "http://localhost:5000/api/payments/create-intent",
           {
@@ -95,7 +96,6 @@ export default function Payment() {
         );
 
         const data = await res.json();
-
         if (!res.ok) throw new Error(data.error || "Payment failed");
 
         setClientSecret(data.clientSecret);
@@ -112,7 +112,7 @@ export default function Payment() {
   if (loading) {
     return (
       <Container className="my-4 text-center">
-        <p>Loading payment...</p>
+        <p>Loading payment…</p>
       </Container>
     );
   }
@@ -130,12 +130,15 @@ export default function Payment() {
       <Card className="p-4 shadow-sm">
         <h4 className="mb-3">Complete Payment</h4>
 
-        <Elements
-          stripe={stripePromise}
-          options={{ clientSecret }}
-        >
-          <CheckoutForm bookingId={bookingId} />
-        </Elements>
+        {clientSecret && (
+          <Elements
+            stripe={stripePromise}
+            options={{ clientSecret }}
+          >
+            {/* ✅ PASS bookingId */}
+            <CheckoutForm bookingId={bookingId} />
+          </Elements>
+        )}
       </Card>
     </Container>
   );

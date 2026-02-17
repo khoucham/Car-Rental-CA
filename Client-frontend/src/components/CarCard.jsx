@@ -54,7 +54,7 @@ const brandKey = brand?.toLowerCase().split(" ")[0];
             {brand} {model}
           </Card.Title>
 
-          {/* BRAND LOGO (optional) */}
+          {/* BRAND LOGO */}
           <Image
             src={BRAND_LOGOS[brandKey]}
             alt={brand}

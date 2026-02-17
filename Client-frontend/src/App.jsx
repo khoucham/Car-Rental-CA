@@ -19,6 +19,7 @@ import AdminCars from "./pages/admin/AdminCars";
 import AdminUsers from "./pages/admin/AdminUsers";
 import "leaflet/dist/leaflet.css";
 import AdminRoute from "./components/AdminRoute";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 function App() {
   return (
@@ -32,11 +33,11 @@ function App() {
         <Route path="/bookings" element={<MyBookings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/payment/:bookingId"element={<UserLayout><Payment /></UserLayout>
-  }
-/>
+        <Route path="/payment-success/:bookingId" element={<PaymentSuccess />} />
+     <Route element={<UserLayout />}>
+  <Route path="/payment/:bookingId" element={<Payment />} /></Route>
 
-      </Route>
+  </Route>
 
       {/* ================= ADMIN ROUTES ================= */}
       <Route path="/admin"element={ <AdminRoute>  <AdminLayout /> </AdminRoute> } >
