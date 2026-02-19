@@ -16,28 +16,152 @@ router.post(
   requireAdmin,
   async (req, res) => {
     try {
-      const { brand, model, type, price_per_day, transmission, fuel } = req.body;
+      const {
+        brand,
+        model,
+        category,
+        type,
+        fuel,
+        transmission,
+        seats,
+        doors,
+        price_per_day,
+        image,
+      } = req.body;
 
       if (!brand || !model || !type || !price_per_day) {
-        return res.status(400).json({ error: "Missing fields" });
+        return res.status(400).json({ error: "Missing required fields" });
       }
 
       await db.query(
         `
-        INSERT INTO cars 
-          (brand, model, type, transmission, fuel, price_per_day)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO cars
+        (brand, model, category, type, fuel, transmission, seats, doors, price_per_day, image)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
-        [brand, model, type, transmission, fuel, price_per_day]
+        [
+          brand,
+          model,
+          category,
+          type,
+          fuel,
+          transmission,
+          seats,
+          doors,
+          price_per_day,
+          image,
+        ]
       );
 
-      res.json({ message: "Car added successfully" });
+      res.status(201).json({ message: "Car added successfully" });
     } catch (err) {
       console.error("ADD CAR ERROR:", err);
       res.status(500).json({ error: "Failed to add car" });
     }
   }
 );
+
+/**
+ * ======================
+ * ADMIN: UPDATE CAR
+ * ======================
+ */
+router.put(
+  "/:id",
+  requireAuth,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        brand,
+        model,
+        category,
+        type,
+        fuel,
+        transmission,
+        seats,
+        doors,
+        price_per_day,
+        image,
+      } = req.body;
+
+      const [result] = await db.query(
+        `
+        UPDATE cars SET
+          brand = ?,
+          model = ?,
+          category = ?,
+          type = ?,
+          fuel = ?,
+          transmission = ?,
+          seats = ?,
+          doors = ?,
+          price_per_day = ?,
+          image = ?
+        WHERE id = ?
+        `,
+        [
+          brand,
+          model,
+          category,
+          type,
+          fuel,
+          transmission,
+          seats,
+          doors,
+          price_per_day,
+          image,
+          id,
+        ]
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Car not found" });
+      }
+
+      res.json({ message: "Car updated successfully" });
+    } catch (err) {
+      console.error("UPDATE CAR ERROR:", err);
+      res.status(500).json({ error: "Failed to update car" });
+    }
+  }
+);
+
+/**
+ * ======================
+ * ADMIN: DELETE CAR
+ * ======================
+ */
+router.delete(
+  "/:id",
+  requireAuth,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      await db.query("DELETE FROM cars WHERE id = ?", [id]);
+
+      res.json({ message: "Car deleted successfully" });
+
+    } catch (err) {
+      console.error("DELETE CAR ERROR:", err);
+
+      //  FOREIGN KEY CONSTRAINT
+      if (err.errno === 1451) {
+        return res.status(409).json({
+          error: "This car cannot be deleted because it has active or past bookings.",
+        });
+      }
+
+      res.status(500).json({
+        error: "Failed to delete car",
+      });
+    }
+  }
+);
+
 
 /**
  * ==========================================
@@ -112,7 +236,7 @@ router.get("/", async (req, res) => {
 
     res.json(cars);
   } catch (err) {
-    console.error("GET /cars error:", err);
+    console.error("GET /cars ERROR:", err);
     res.status(500).json({ error: "Failed to fetch cars" });
   }
 });
@@ -139,50 +263,5 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-/**
- * =========================
- * GET CAR SPECS (NHTSA API)
- * =========================
- */
-router.get("/:id/specs", async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      "SELECT brand, model FROM cars WHERE id = ?",
-      [req.params.id]
-    );
-
-    if (!rows.length) {
-      return res.status(404).json({ message: "Car not found" });
-    }
-
-    const { brand, model } = rows[0];
-
-    const apiRes = await fetch(
-      `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${encodeURIComponent(
-        brand
-      )}?format=json`
-    );
-
-    const apiData = await apiRes.json();
-
-    const match = apiData.Results.find(
-      (m) => m.Model_Name.toLowerCase() === model.toLowerCase()
-    );
-
-    if (!match) {
-      return res.json(null);
-    }
-
-    res.json({
-      Make_Name: match.Make_Name,
-      Model_Name: match.Model_Name,
-      Model_ID: match.Model_ID,
-      Manufacturer: brand,
-    });
-  } catch (err) {
-    console.error("CAR SPECS ERROR:", err);
-    res.status(500).json({ message: "Failed to fetch car specs" });
-  }
-});
 
 export default router;

@@ -7,6 +7,7 @@ import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
 import Modal from "react-bootstrap/Modal";
+import Pagination from "react-bootstrap/Pagination";
 
 import { useAuth } from "../context/AuthContext";
 
@@ -14,8 +15,7 @@ import { useAuth } from "../context/AuthContext";
    Utils
 ===================== */
 function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-IE", {
+  return new Date(dateString).toLocaleDateString("en-IE", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -23,7 +23,8 @@ function formatDate(dateString) {
 }
 
 function MyBookings() {
-  const { user } = useAuth(); // ✅ JWT user
+  const { user } = useAuth();
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +32,13 @@ function MyBookings() {
   const [selectedBookingId, setSelectedBookingId] = useState(null);
 
   /* =====================
-     Fetch bookings (JWT)
+     PAGINATION STATE
+  ===================== */
+  const [currentPage, setCurrentPage] = useState(1);
+  const BOOKINGS_PER_PAGE = 5;
+
+  /* =====================
+     Fetch bookings
   ===================== */
   useEffect(() => {
     if (!user) {
@@ -54,7 +61,7 @@ function MyBookings() {
         const data = await res.json();
         setBookings(data);
       } catch (err) {
-        console.error("Failed to load bookings:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -86,13 +93,13 @@ function MyBookings() {
   }
 
   /* =====================
-     Cancel booking (SOFT CANCEL)
+     Cancel booking
   ===================== */
   const confirmCancel = async () => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(
+      await fetch(
         `http://localhost:5000/api/bookings/${selectedBookingId}/cancel`,
         {
           method: "PATCH",
@@ -102,21 +109,13 @@ function MyBookings() {
         }
       );
 
-      if (!res.ok) {
-        throw new Error("Cancel failed");
-      }
-
-      // ✅ Update UI without reload
       setBookings((prev) =>
         prev.map((b) =>
-          b.id === selectedBookingId
-            ? { ...b, status: "cancelled" }
-            : b
+          b.id === selectedBookingId ? { ...b, status: "cancelled" } : b
         )
       );
     } catch (err) {
-      console.error("Failed to cancel booking:", err);
-      alert("Something went wrong.");
+      alert("Something went wrong");
     } finally {
       setShowConfirm(false);
       setSelectedBookingId(null);
@@ -131,6 +130,16 @@ function MyBookings() {
   };
 
   /* =====================
+     PAGINATION LOGIC
+  ===================== */
+  const totalPages = Math.ceil(bookings.length / BOOKINGS_PER_PAGE);
+  const startIndex = (currentPage - 1) * BOOKINGS_PER_PAGE;
+  const paginatedBookings = bookings.slice(
+    startIndex,
+    startIndex + BOOKINGS_PER_PAGE
+  );
+
+  /* =====================
      UI
   ===================== */
   return (
@@ -143,60 +152,72 @@ function MyBookings() {
           <Alert.Link as={Link} to="/cars">Book a car</Alert.Link>
         </Alert>
       ) : (
-        <Table bordered hover responsive className="shadow-sm">
-          <thead className="table-light">
-            <tr>
-              <th>Car</th>
-              <th>Start</th>
-              <th>End</th>
-              <th>Total (€)</th>
-              <th>Status</th>
-              <th className="text-end">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.map((b) => (
-              <tr key={b.id}>
-                <td>{b.brand} {b.model}</td>
-                <td>{formatDate(b.start_date)}</td>
-                <td>{formatDate(b.end_date)}</td>
-                <td>{b.total}</td>
-                <td>{statusBadge(b.status)}</td>
+        <>
+          <Table bordered hover responsive className="shadow-sm">
+            <thead className="table-light">
+              <tr>
+                <th>Car</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Total (€)</th>
+                <th>Status</th>
+                <th className="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedBookings.map((b) => (
+                <tr key={b.id}>
+                  <td>{b.brand} {b.model}</td>
+                  <td>{formatDate(b.start_date)}</td>
+                  <td>{formatDate(b.end_date)}</td>
+                  <td>{b.total}</td>
+                  <td>{statusBadge(b.status)}</td>
                   <td className="text-end">
-                  {b.status === "confirmed" ? (
-                    <span title="Confirmed bookings cannot be cancelled">
+                    {b.status === "pending" ? (
                       <Button
                         size="sm"
                         variant="outline-danger"
-                        disabled
-                        style={{ pointerEvents: "none" }}
+                        onClick={() => {
+                          setSelectedBookingId(b.id);
+                          setShowConfirm(true);
+                        }}
                       >
                         Cancel
                       </Button>
-                    </span>
-                  ) : b.status === "pending" ? (
-                    <Button
-                      size="sm"
-                      variant="outline-danger"
-                      onClick={() => {
-                        setSelectedBookingId(b.id);
-                        setShowConfirm(true);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline-secondary" disabled>
-                      Cancelled
-                    </Button>
-                  )}
-                </td>
+                    ) : (
+                      <Button size="sm" variant="outline-secondary" disabled>
+                        Cancelled
+                      </Button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
 
+          {/* PAGINATION */}
+          <Pagination className="justify-content-center">
+            <Pagination.Prev
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            />
 
-              </tr>
+            {[...Array(totalPages)].map((_, i) => (
+              <Pagination.Item
+                key={i}
+                active={i + 1 === currentPage}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </Pagination.Item>
             ))}
-          </tbody>
-        </Table>
+
+            <Pagination.Next
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            />
+          </Pagination>
+        </>
       )}
 
       {/* CONFIRM MODAL */}

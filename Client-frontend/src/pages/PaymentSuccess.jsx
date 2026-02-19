@@ -5,6 +5,14 @@ import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/Alert";
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString("en-IE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 
 export default function PaymentSuccess() {
   const { bookingId } = useParams(); // ✅ FIXED
@@ -117,12 +125,13 @@ export default function PaymentSuccess() {
               </strong>
             </div>
 
-            <div className="d-flex justify-content-between mb-2">
-              <span>Rental Dates</span>
-              <strong>
-                {booking.start_date} → {booking.end_date}
-              </strong>
-            </div>
+                  <div className="d-flex justify-content-between mb-2">
+                  <span>Rental Dates</span>
+                  <strong>
+                    {formatDate(booking.start_date)} → {formatDate(booking.end_date)}
+                  </strong>
+                    </div>
+
 
             <div className="d-flex justify-content-between mb-2">
               <span>Total Paid</span>
